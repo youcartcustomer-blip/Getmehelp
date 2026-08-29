@@ -1,1 +1,720 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>GetMeHelp — Offers</title>
+<meta name="description" content="Compare top offers across home services, finance, travel and more." />
+<meta property="og:title" content="GetMeHelp — Offers" />
+<meta property="og:description" content="Compare top offers across home services, finance, travel and more." />
+<meta property="og:type" content="website" />
+<meta name="twitter:card" content="summary_large_image" />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%23F2600C'/%3E%3Ctext x='50' y='68' font-size='58' text-anchor='middle' fill='white' font-family='sans-serif'%3EG%3C/text%3E%3C/svg%3E" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://kcqdqgypsnpdtvmatuua.supabase.co">
+<link rel="preconnect" href="https://kcqdqgypsnpdtvmatuua.supabase.co" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<style>
+  :root{
+    --bg:#ffffff;
+    --surface:#fff4ea;
+    --surface-2:#ffe9d6;
+    --text:#201a15;
+    --muted:#8a7f74;
+    --gold:#f2600c;
+    --line: rgba(32,26,21,0.1);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--bg);
+    color:var(--text);
+    font-family:'Inter',sans-serif;
+    min-height:100vh;
+  }
+  .site-header{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding: 18px 20px;
+    border-bottom:1px solid var(--line);
+  }
+  .brand{
+    font-family:'JetBrains Mono',monospace;
+    font-size:12px;
+    letter-spacing:.12em;
+    text-transform:uppercase;
+    color:var(--muted);
+  }
+  .brand b{ color:var(--text); }
 
+  /* HERO */
+  .hero-wrap{
+    position:relative;
+    overflow:hidden;
+  }
+  .segments{
+    display:flex;
+    gap:5px;
+    padding: 12px 16px 0;
+  }
+  .segment{
+    flex:1;
+    height:3px;
+    background: rgba(32,26,21,0.12);
+    border-radius:2px;
+    overflow:hidden;
+    cursor:pointer;
+  }
+  .segment .fill{
+    height:100%;
+    width:0%;
+    background:var(--gold);
+  }
+
+  .hero-track{
+    display:flex;
+    transition: transform 0.45s cubic-bezier(.65,0,.35,1);
+    touch-action: pan-y;
+  }
+  .hero-slide{
+    flex: 0 0 100%;
+    position:relative;
+    height: 62vh;
+    min-height:380px;
+    max-height:560px;
+    text-decoration:none;
+    color:inherit;
+    display:block;
+  }
+  .hero-slide img{
+    width:100%;height:100%;object-fit:cover;display:block;
+    background: linear-gradient(160deg,#26282f,#191a1f);
+  }
+  .hero-scrim{
+    position:absolute; inset:0;
+    background: linear-gradient(180deg, rgba(255,255,255,0) 25%, rgba(255,255,255,0.97) 100%);
+  }
+  .hero-copy{
+    position:absolute; left:0; right:0; bottom:0;
+    padding: 0 24px 28px;
+  }
+  .badge-row{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    margin-bottom:10px;
+  }
+  .trending-badge{
+    font-family:'JetBrains Mono',monospace;
+    font-size:10px;
+    letter-spacing:.08em;
+    text-transform:uppercase;
+    font-weight:700;
+    color:#fff;
+    background: linear-gradient(135deg, #ff8a3d, #f2600c);
+    padding:4px 9px;
+    border-radius:12px;
+  }
+  .urgency-badge{
+    font-family:'JetBrains Mono',monospace;
+    font-size:10px;
+    letter-spacing:.06em;
+    text-transform:uppercase;
+    font-weight:700;
+    color:#b5352a;
+    background: #ffe3dc;
+    padding:4px 9px;
+    border-radius:12px;
+  }
+
+  .hero-tag{
+    font-family:'JetBrains Mono',monospace;
+    font-size:11px; letter-spacing:.12em; text-transform:uppercase;
+    color:var(--gold);
+    margin-bottom:10px;
+    display:inline-block;
+  }
+  .hero-copy h1{
+    font-family:'Fraunces',serif;
+    font-weight:600;
+    font-size: clamp(26px, 6.5vw, 40px);
+    line-height:1.08;
+    margin: 0 0 18px;
+    max-width: 22ch;
+  }
+  .hero-cta{
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    background: var(--gold);
+    color: #fff;
+    font-weight:700;
+    font-size:14px;
+    padding:12px 20px;
+    border-radius:30px;
+  }
+  .hero-cta::after{ content:"→"; }
+  .hero-nav{
+    position:absolute;
+    top:50%;
+    transform: translateY(-50%);
+    width:38px; height:38px;
+    border-radius:50%;
+    background: rgba(242,96,12,0.9);
+    border:1px solid rgba(255,255,255,0.5);
+    color: #fff;
+    font-size:20px;
+    display:flex; align-items:center; justify-content:center;
+    cursor:pointer;
+    z-index:5;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .hero-nav.prev{ left:12px; }
+  .hero-nav.next{ right:12px; }
+
+  .hero-empty{
+    height:62vh; min-height:380px;
+    display:flex; align-items:center; justify-content:center;
+    color:var(--muted); font-size:14px;
+  }
+
+  /* CATEGORY PILLS */
+  .search-wrap{
+    padding: 4px 20px 16px;
+  }
+  .search-input{
+    width:100%;
+    background: var(--surface);
+    border:1px solid var(--line);
+    border-radius:24px;
+    padding: 12px 18px;
+    font-size:14px;
+    font-family:'Inter',sans-serif;
+    color: var(--text);
+  }
+  .search-input::placeholder{ color: var(--muted); }
+  .search-input:focus{ outline:2px solid var(--gold); }
+
+  .categories{
+    display:flex;
+    gap:8px;
+    overflow-x:auto;
+    padding: 18px 20px;
+    -webkit-overflow-scrolling:touch;
+  }
+  .categories::-webkit-scrollbar{ display:none; }
+  .pill{
+    flex:0 0 auto;
+    font-family:'JetBrains Mono',monospace;
+    font-size:11.5px;
+    letter-spacing:.06em;
+    text-transform:uppercase;
+    padding: 8px 16px;
+    border-radius:20px;
+    border:1px solid var(--line);
+    background: var(--surface);
+    color: var(--muted);
+    cursor:pointer;
+  }
+  .pill.active{
+    background: var(--gold);
+    border-color: var(--gold);
+    color: #fff;
+    font-weight:700;
+  }
+
+  .offers{
+    display:flex;
+    gap:10px;
+    overflow-x:auto;
+    padding: 0 20px 20px;
+    -webkit-overflow-scrolling:touch;
+  }
+  .offers::-webkit-scrollbar{ display:none; }
+  .offer-badge{
+    flex:0 0 auto;
+    background: var(--surface);
+    border:1px solid var(--line);
+    border-radius:10px;
+    padding: 10px 16px;
+    cursor:pointer;
+    display:flex;
+    flex-direction:column;
+    gap:2px;
+  }
+  .offer-badge:active{ border-color: var(--gold); }
+  .offer-percent{
+    font-family:'Fraunces',serif;
+    font-weight:600;
+    font-size:16px;
+    color: var(--gold);
+  }
+  .offer-cat{
+    font-family:'JetBrains Mono',monospace;
+    font-size:10px;
+    letter-spacing:.06em;
+    text-transform:uppercase;
+    color: var(--muted);
+  }
+
+  /* GRID */
+  .section-title{
+    font-family:'Fraunces',serif;
+    font-weight:600;
+    font-size:20px;
+    padding: 4px 20px 14px;
+  }
+  .grid{
+    display:grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap:14px;
+    padding: 0 20px 40px;
+  }
+  @media (min-width:640px){
+    .grid{ grid-template-columns: repeat(3, 1fr); }
+  }
+  @media (min-width:960px){
+    .grid{ grid-template-columns: repeat(4, 1fr); }
+  }
+  .g-card{
+    display:block;
+    text-decoration:none;
+    color:inherit;
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:10px;
+    overflow:hidden;
+  }
+  .g-card img{
+    width:100%; aspect-ratio:4/3; object-fit:cover; display:block;
+    background: linear-gradient(160deg,#26282f,#191a1f);
+  }
+  .g-body{ padding:12px 13px 14px; }
+  .g-tag{
+    font-family:'JetBrains Mono',monospace;
+    font-size:10px; letter-spacing:.08em; text-transform:uppercase;
+    color: var(--gold);
+    display:block;
+    margin-bottom:6px;
+  }
+  .g-body h3{
+    font-family:'Inter',sans-serif;
+    font-weight:600;
+    font-size:13.5px;
+    line-height:1.3;
+    margin:0 0 8px;
+  }
+  .g-link{
+    font-size:12px;
+    color:var(--muted);
+    font-weight:600;
+  }
+  .g-link::after{ content:" →"; }
+  .g-body .badge-row{ margin-bottom: 8px; flex-wrap:wrap; }
+  .g-body .trending-badge, .g-body .urgency-badge{ font-size:9px; padding:3px 7px; }
+
+  .grid-empty{
+    grid-column: 1 / -1;
+    color:var(--muted);
+    font-size:13px;
+    padding: 20px 0;
+    text-align:center;
+  }
+
+  .disclosure{
+    text-align:center;
+    font-size:11px;
+    color: var(--muted);
+    padding: 8px 20px;
+    background: var(--surface);
+    border-bottom:1px solid var(--line);
+  }
+
+  footer{
+    text-align:center;
+    padding:20px;
+    font-size:11px;
+    color: var(--muted);
+    font-family:'JetBrains Mono',monospace;
+    border-top:1px solid var(--line);
+  }
+  footer a{ color: var(--gold); text-decoration:none; }
+</style>
+<!--
+  META PIXEL — uncomment and replace YOUR_PIXEL_ID to activate.
+  Get this ID from Meta Events Manager > your pixel.
+
+  <script>
+  !function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+  n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;
+  n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;
+  t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,
+  document,'script','https://connect.facebook.net/en_US/fbevents.js');
+  fbq('init', 'YOUR_PIXEL_ID');
+  fbq('track', 'PageView');
+  </script>
+-->
+
+<!--
+  GOOGLE ADS TAG — uncomment and replace AW-XXXXXXXXX to activate.
+  Get this ID from Google Ads > Tools > Conversions.
+
+  <script async src="https://www.googletagmanager.com/gtag/js?id=AW-XXXXXXXXX"></script>
+  <script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'AW-XXXXXXXXX');
+  </script>
+-->
+
+</head>
+<body>
+
+<div class="disclosure">This site contains affiliate links — we may earn a commission at no extra cost to you.</div>
+
+<div class="site-header">
+  <div class="brand"><b>GetMeHelp</b> · offers</div>
+</div>
+
+<div class="hero-wrap" id="heroWrap">
+  <div class="segments" id="segments"></div>
+  <div class="hero-track" id="heroTrack">
+    <div class="hero-empty">Loading offers…</div>
+  </div>
+  <button class="hero-nav prev" id="heroPrev" aria-label="Previous offer">‹</button>
+  <button class="hero-nav next" id="heroNext" aria-label="Next offer">›</button>
+</div>
+
+<div class="categories" id="categories"></div>
+
+<div class="search-wrap">
+  <input class="search-input" id="searchInput" type="text" placeholder="Search offers — e.g. roofing, solar, credit cards" />
+</div>
+
+<div class="offers" id="offers"></div>
+
+<div class="section-title">More offers</div>
+<div class="grid" id="grid"></div>
+
+<footer>Built for GetMeHelp · <a href="build.html">campaign builder →</a></footer>
+
+<script>
+const SUPABASE_URL = "https://kcqdqgypsnpdtvmatuua.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtjcWRxZ3lwc25wZHR2bWF0dXVhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODMyNTU5ODMsImV4cCI6MjA5ODgzMTk4M30.8UqayIF_29Qk-Q9VT2JRipy-LweYXLCgO7v2D2KhZJY";
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+const ROTATE_MS = 7000;
+
+/* Maps a specific niche to its broader marketplace category */
+const CATEGORY_MAP = {
+  roofing: "Home Services", hvac: "Home Services", plumbing: "Home Services",
+  solar: "Home Services", remodeling: "Home Services", "water-damage": "Home Services",
+  windows: "Home Services", siding: "Home Services", "pest-control": "Home Services",
+
+  "credit-cards": "Finance", loans: "Finance", banking: "Finance", investing: "Finance",
+  insurance: "Insurance", "auto-insurance": "Insurance", "life-insurance": "Insurance",
+
+  flights: "Travel", hotels: "Travel", "car-rental": "Travel", "travel-insurance": "Travel",
+
+  supplements: "Health & Wellness", fitness: "Health & Wellness", skincare: "Health & Wellness",
+
+  vpn: "Tech & Gadgets", hosting: "Tech & Gadgets", software: "Tech & Gadgets", electronics: "Tech & Gadgets",
+
+  apparel: "Fashion & Retail", beauty: "Fashion & Retail", accessories: "Fashion & Retail",
+
+  streaming: "Entertainment", sports: "Entertainment", gaming: "Entertainment"
+};
+
+/* Always shown as filter options, even before campaigns exist in them */
+const TRENDING_CATEGORIES = [
+  "Home Services", "Finance", "Insurance", "Travel",
+  "Health & Wellness", "Tech & Gadgets", "Fashion & Retail", "Entertainment"
+];
+
+function getCategory(niche){
+  return CATEGORY_MAP[(niche || "").toLowerCase()] || "Other";
+}
+
+let campaigns = [];
+let heroIndex = 0;
+let rotateTimer = null;
+let trendingIds = new Set();
+
+function getUrgencyLabel(expiresAt){
+  if(!expiresAt) return null;
+  const days = Math.ceil((new Date(expiresAt) - new Date()) / (1000 * 60 * 60 * 24));
+  if(days <= 0) return null;
+  if(days === 1) return 'Ends tomorrow';
+  if(days <= 7) return `Ends in ${days} days`;
+  return null;
+}
+
+function badgeRow(c){
+  const bits = [];
+  if(trendingIds.has(c.id)) bits.push(`<span class="trending-badge">🔥 Trending</span>`);
+  const urgency = getUrgencyLabel(c.expires_at);
+  if(urgency) bits.push(`<span class="urgency-badge">${urgency}</span>`);
+  return bits.length ? `<div class="badge-row">${bits.join('')}</div>` : '';
+}
+
+function buildAwinUrl(c){
+  const params = new URLSearchParams(window.location.search);
+  const utmSource = params.get('utm_source') || 'direct';
+  const utmCampaign = params.get('utm_campaign') || '';
+  const clickref = [c.clickref_base || c.niche, utmSource, utmCampaign].filter(Boolean).join('_');
+  try{
+    const url = new URL(c.awin_link);
+    url.searchParams.set('clickref', clickref);
+    return url.toString();
+  }catch(e){ return c.awin_link; }
+}
+
+function logClick(c){
+  const params = new URLSearchParams(window.location.search);
+  sb.from('campaign_clicks').insert({
+    campaign_id: c.id,
+    niche: c.niche,
+    category: getCategory(c.niche),
+    utm_source: params.get('utm_source') || 'direct',
+    utm_campaign: params.get('utm_campaign') || null
+  }).then(() => {}); // fire and forget, doesn't block navigation
+
+  // Ad platform conversion signals — safe no-ops until you paste real IDs below
+  if(typeof fbq !== 'undefined') fbq('track', 'Lead', { content_name: c.niche, content_category: getCategory(c.niche) });
+  if(typeof gtag !== 'undefined') gtag('event', 'conversion', { send_to: 'AW-XXXXXXXXX/XXXXXXXXXXXX', event_category: c.niche });
+}
+
+document.addEventListener('click', (e) => {
+  const el = e.target.closest('[data-cid]');
+  if(!el) return;
+  const c = campaigns.find(x => x.id === el.dataset.cid);
+  if(c) logClick(c);
+});
+
+/* ---------- HERO ---------- */
+function renderHero(){
+  const track = document.getElementById('heroTrack');
+  const segWrap = document.getElementById('segments');
+
+  if(campaigns.length === 0){
+    track.innerHTML = `<div class="hero-empty">No live offers yet.</div>`;
+    segWrap.innerHTML = '';
+    return;
+  }
+
+  track.innerHTML = campaigns.map(c => `
+    <a class="hero-slide" data-cid="${c.id}" href="${buildAwinUrl(c)}" target="_blank" rel="noopener sponsored">
+      <img src="${c.poster_url || ''}" alt="${c.headline || c.niche}" />
+      <div class="hero-scrim"></div>
+      <div class="hero-copy">
+        ${badgeRow(c)}
+        <span class="hero-tag">${c.niche}</span>
+        <h1>${c.headline || c.niche}</h1>
+        <span class="hero-cta">View offer</span>
+      </div>
+    </a>
+  `).join('');
+
+  segWrap.innerHTML = campaigns.map((_, i) => `
+    <div class="segment" data-i="${i}"><div class="fill"></div></div>
+  `).join('');
+
+  segWrap.querySelectorAll('.segment').forEach(seg => {
+    seg.addEventListener('click', () => goToHero(parseInt(seg.dataset.i), true));
+  });
+
+  goToHero(0, true);
+  attachSwipe();
+}
+
+function goToHero(i){
+  if(campaigns.length === 0) return;
+  heroIndex = (i + campaigns.length) % campaigns.length;
+  document.getElementById('heroTrack').style.transform = `translateX(-${heroIndex * 100}%)`;
+
+  const fills = document.querySelectorAll('.segment .fill');
+  fills.forEach((f, idx) => {
+    f.style.transition = 'none';
+    f.style.width = idx < heroIndex ? '100%' : '0%';
+  });
+
+  clearTimeout(rotateTimer);
+  const current = fills[heroIndex];
+  if(current && campaigns.length > 1){
+    requestAnimationFrame(() => {
+      current.style.transition = `width ${ROTATE_MS}ms linear`;
+      current.style.width = '100%';
+    });
+    rotateTimer = setTimeout(() => goToHero(heroIndex + 1), ROTATE_MS);
+  }
+}
+
+function attachSwipe(){
+  const wrap = document.getElementById('heroWrap');
+  let startX = null;
+  let dragged = false;
+
+  wrap.addEventListener('touchstart', e => {
+    startX = e.touches[0].clientX;
+    dragged = false;
+  }, {passive:true});
+
+  wrap.addEventListener('touchmove', e => {
+    if(startX === null) return;
+    if(Math.abs(e.touches[0].clientX - startX) > 10) dragged = true;
+  }, {passive:true});
+
+  wrap.addEventListener('touchend', e => {
+    if(startX === null) return;
+    const dx = e.changedTouches[0].clientX - startX;
+    if(Math.abs(dx) > 40){
+      e.preventDefault();
+      goToHero(heroIndex + (dx < 0 ? 1 : -1));
+    }
+    startX = null;
+    dragged = false;
+  });
+
+  document.getElementById('heroPrev').addEventListener('click', () => goToHero(heroIndex - 1));
+  document.getElementById('heroNext').addEventListener('click', () => goToHero(heroIndex + 1));
+}
+
+/* ---------- CATEGORIES + GRID ---------- */
+let activeCategory = 'all';
+let searchQuery = '';
+
+document.getElementById('searchInput').addEventListener('input', (e) => {
+  searchQuery = e.target.value.trim().toLowerCase();
+  renderGrid();
+});
+
+function renderCategories(){
+  const wrap = document.getElementById('categories');
+  const dataCats = [...new Set(campaigns.map(c => getCategory(c.niche)))];
+  const extra = dataCats.filter(c => !TRENDING_CATEGORIES.includes(c));
+  const cats = ['all', ...TRENDING_CATEGORIES, ...extra];
+
+  wrap.innerHTML = cats.map(cat => `
+    <div class="pill ${cat === activeCategory ? 'active' : ''}" data-cat="${cat}">${cat === 'all' ? 'All offers' : cat}</div>
+  `).join('');
+  wrap.querySelectorAll('.pill').forEach(p => {
+    p.addEventListener('click', () => {
+      activeCategory = p.dataset.cat;
+      renderCategories();
+      renderGrid();
+    });
+  });
+}
+
+function renderOfferHighlights(){
+  const wrap = document.getElementById('offers');
+  const byCategory = {};
+  campaigns.forEach(c => {
+    const cat = getCategory(c.niche);
+    if(c.discount_label && !byCategory[cat]){
+      byCategory[cat] = c.discount_label;
+    }
+  });
+  const entries = Object.entries(byCategory);
+  if(entries.length === 0){
+    wrap.innerHTML = '';
+    return;
+  }
+  wrap.innerHTML = entries.map(([cat, label]) => `
+    <div class="offer-badge" data-cat="${cat}">
+      <span class="offer-percent">${label}</span>
+      <span class="offer-cat">${cat}</span>
+    </div>
+  `).join('');
+  wrap.querySelectorAll('.offer-badge').forEach(b => {
+    b.addEventListener('click', () => {
+      activeCategory = b.dataset.cat;
+      renderCategories();
+      renderGrid();
+      document.getElementById('grid').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  });
+}
+
+function renderGrid(){
+  const grid = document.getElementById('grid');
+  let filtered = activeCategory === 'all'
+    ? campaigns
+    : campaigns.filter(c => getCategory(c.niche) === activeCategory);
+
+  if(searchQuery){
+    filtered = filtered.filter(c =>
+      (c.niche || '').toLowerCase().includes(searchQuery) ||
+      (c.headline || '').toLowerCase().includes(searchQuery) ||
+      getCategory(c.niche).toLowerCase().includes(searchQuery)
+    );
+  }
+
+  if(filtered.length === 0){
+    grid.innerHTML = `<div class="grid-empty">${searchQuery ? `No offers match “${searchQuery}”.` : 'No offers in this category yet.'}</div>`;
+    return;
+  }
+
+  grid.innerHTML = filtered.map(c => `
+    <a class="g-card" data-cid="${c.id}" href="${buildAwinUrl(c)}" target="_blank" rel="noopener sponsored">
+      <img src="${c.poster_url || ''}" alt="${c.headline || c.niche}" loading="lazy" onerror="this.style.opacity=0.2" />
+      <div class="g-body">
+        ${badgeRow(c)}
+        <span class="g-tag">${c.niche}</span>
+        <h3>${c.headline || c.niche}</h3>
+        <span class="g-link">View offer</span>
+      </div>
+    </a>
+  `).join('');
+}
+
+/* ---------- LOAD ---------- */
+async function loadCampaigns(){
+  const { data, error } = await sb
+    .from('campaigns')
+    .select('*')
+    .eq('active', true)
+    .order('sort_order', { ascending: true })
+    .order('created_at', { ascending: false });
+
+  if(error){
+    document.getElementById('heroTrack').innerHTML = `<div class="hero-empty">Couldn't load offers.</div>`;
+    return;
+  }
+
+  campaigns = (data || []).filter(c => !c.expires_at || new Date(c.expires_at) > new Date());
+
+  // fetch trending (aggregated, doesn't expose raw click log)
+  const { data: trending } = await sb.rpc('get_trending_campaign_ids', { limit_count: 3, min_clicks: 3 });
+  trendingIds = new Set((trending || []).map(t => t.campaign_id));
+
+  renderHero();
+  renderCategories();
+  renderOfferHighlights();
+  renderGrid();
+  applyDeepLink();
+}
+
+/* Deep linking: ?niche=roofing lands the visitor directly on that offer,
+   instead of the generic homepage — critical for ad landing-page relevance. */
+function applyDeepLink(){
+  const params = new URLSearchParams(window.location.search);
+  const nicheParam = params.get('niche');
+  if(!nicheParam) return;
+
+  const query = nicheParam.toLowerCase();
+  document.getElementById('searchInput').value = nicheParam;
+  searchQuery = query;
+  renderGrid();
+
+  const idx = campaigns.findIndex(c => (c.niche || '').toLowerCase() === query);
+  if(idx > -1) goToHero(idx);
+}
+
+loadCampaigns();
+</script>
+</body>
+</html>
