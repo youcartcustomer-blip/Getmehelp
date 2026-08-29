@@ -79,12 +79,18 @@ async function go(){
   }
 
   // log the click (best-effort, doesn't block redirect)
+  function getVisitorId(){
+    let id = localStorage.getItem('gmh_vid');
+    if(!id){ id = crypto.randomUUID(); localStorage.setItem('gmh_vid', id); }
+    return id;
+  }
   sb.from('campaign_clicks').insert({
     campaign_id: campaign.id,
     niche: campaign.niche,
     category: getCategory(campaign.niche),
     utm_source: params.get('utm_source') || 'direct',
-    utm_campaign: params.get('utm_campaign') || null
+    utm_campaign: params.get('utm_campaign') || null,
+    visitor_id: getVisitorId()
   }).then(() => {});
 
   if(typeof fbq !== 'undefined') fbq('track', 'Lead', { content_name: campaign.niche });
