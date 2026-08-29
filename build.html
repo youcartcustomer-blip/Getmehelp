@@ -207,12 +207,20 @@ function setLoginStatus(msg, type){
   el.className = 'status' + (type ? ' ' + type : '');
 }
 
+const ADMIN_EMAIL = 'hasibkhan2266@gmail.com';
+
 async function checkSession(){
   const { data: { session } } = await sb.auth.getSession();
-  if(session){
+  if(session && session.user?.email === ADMIN_EMAIL){
     document.getElementById('loginCard').style.display = 'none';
     document.getElementById('appArea').style.display = 'block';
     loadList();
+  }else if(session){
+    // signed in, but not the admin account — sign them out and don't expose the builder
+    await sb.auth.signOut();
+    document.getElementById('loginCard').style.display = 'block';
+    document.getElementById('appArea').style.display = 'none';
+    setLoginStatus('This account is not authorized to use this page.', 'err');
   }else{
     document.getElementById('loginCard').style.display = 'block';
     document.getElementById('appArea').style.display = 'none';
