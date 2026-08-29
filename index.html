@@ -472,14 +472,30 @@ function buildAwinUrl(c){
   }catch(e){ return c.awin_link; }
 }
 
+function getVisitorId(){
+  let id = localStorage.getItem('gmh_vid');
+  if(!id){
+    id = crypto.randomUUID();
+    localStorage.setItem('gmh_vid', id);
+  }
+  return id;
+}
+
+const recentlyLogged = new Set();
+
 function logClick(c){
+  if(recentlyLogged.has(c.id)) return; // debounce double-taps
+  recentlyLogged.add(c.id);
+  setTimeout(() => recentlyLogged.delete(c.id), 3000);
+
   const params = new URLSearchParams(window.location.search);
   sb.from('campaign_clicks').insert({
     campaign_id: c.id,
     niche: c.niche,
     category: getCategory(c.niche),
     utm_source: params.get('utm_source') || 'direct',
-    utm_campaign: params.get('utm_campaign') || null
+    utm_campaign: params.get('utm_campaign') || null,
+    visitor_id: getVisitorId()
   }).then(() => {}); // fire and forget, doesn't block navigation
 
   // Ad platform conversion signals — safe no-ops until you paste real IDs below
