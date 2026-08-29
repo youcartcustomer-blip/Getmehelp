@@ -151,10 +151,7 @@
   <div class="card" id="loginCard">
     <label>Email</label>
     <input type="text" id="loginEmail" placeholder="you@example.com" />
-    <label>Password</label>
-    <input type="text" id="loginPassword" placeholder="••••••••" style="-webkit-text-security:disc;" />
-    <button id="signInBtn">Sign in</button>
-    <button id="signUpBtn" style="background:transparent;border:1px solid var(--line);color:var(--muted);margin-top:10px;">First time — create account</button>
+    <button id="sendLinkBtn">Send sign-in link</button>
     <div class="status" id="loginStatus"></div>
   </div>
 
@@ -222,27 +219,19 @@ async function checkSession(){
   }
 }
 
-document.getElementById('signInBtn').addEventListener('click', async () => {
+document.getElementById('sendLinkBtn').addEventListener('click', async () => {
   const email = document.getElementById('loginEmail').value.trim();
-  const password = document.getElementById('loginPassword').value;
-  setLoginStatus('Signing in…');
-  const { error } = await sb.auth.signInWithPassword({ email, password });
-  if(error){ setLoginStatus(error.message, 'err'); return; }
-  setLoginStatus('');
-  checkSession();
-});
-
-document.getElementById('signUpBtn').addEventListener('click', async () => {
-  const email = document.getElementById('loginEmail').value.trim();
-  const password = document.getElementById('loginPassword').value;
-  if(!email || password.length < 6){
-    setLoginStatus('Enter an email and a password (6+ characters).', 'err');
+  if(!email){
+    setLoginStatus('Enter your email first.', 'err');
     return;
   }
-  setLoginStatus('Creating account…');
-  const { error } = await sb.auth.signUp({ email, password });
+  setLoginStatus('Sending link…');
+  const { error } = await sb.auth.signInWithOtp({
+    email,
+    options: { emailRedirectTo: window.location.href.split('#')[0].split('?')[0] }
+  });
   if(error){ setLoginStatus(error.message, 'err'); return; }
-  setLoginStatus('Account created — check your email to confirm, then sign in.', 'ok');
+  setLoginStatus('Check your email — tap the link to sign in. (Also check spam.)', 'ok');
 });
 
 document.getElementById('signOutBtn')?.addEventListener('click', async () => {
