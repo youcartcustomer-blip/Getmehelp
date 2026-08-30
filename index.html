@@ -467,6 +467,24 @@
   </script>
 -->
 
+<!--
+  GOOGLE ANALYTICS (GA4) — uncomment and replace G-XXXXXXXXXX to activate.
+  Get this ID from analytics.google.com > Admin > Data Streams > your web stream.
+  This is what gives you a real, shareable traffic dashboard to show advertisers.
+
+  NOTE: if you ALSO activate the Google Ads tag above, only load gtag.js ONCE —
+  delete the duplicate <script src="...gtag/js?id=..."> line and keep both
+  gtag('config', ...) calls (one for AW-XXXXXXXXX, one for G-XXXXXXXXXX).
+
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
+  <script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-XXXXXXXXXX');
+  </script>
+-->
+
 </head>
 <body>
 
