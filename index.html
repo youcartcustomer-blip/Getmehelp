@@ -8,7 +8,12 @@
 <meta property="og:title" content="GetMeHelp — Offers" />
 <meta property="og:description" content="Compare top offers across home services, finance, travel and more." />
 <meta property="og:type" content="website" />
+<meta property="og:url" content="https://getmehelp.vercel.app/" />
+<meta property="og:image" content="https://getmehelp.vercel.app/og-image.jpg" />
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />
 <meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:image" content="https://getmehelp.vercel.app/og-image.jpg" />
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%23F2600C'/%3E%3Ctext x='50' y='68' font-size='58' text-anchor='middle' fill='white' font-family='sans-serif'%3EG%3C/text%3E%3C/svg%3E" />
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://kcqdqgypsnpdtvmatuua.supabase.co">
@@ -37,8 +42,7 @@
     display:flex;
     align-items:center;
     justify-content:space-between;
-    padding: 18px 20px;
-    border-bottom:1px solid var(--line);
+    padding: 14px 20px 10px;
   }
   .brand{
     font-family:'JetBrains Mono',monospace;
@@ -81,9 +85,9 @@
   .hero-slide{
     flex: 0 0 100%;
     position:relative;
-    height: 62vh;
-    min-height:380px;
-    max-height:560px;
+    height: 55vh;
+    min-height:360px;
+    max-height:500px;
     text-decoration:none;
     color:inherit;
     display:block;
@@ -173,6 +177,29 @@
   }
   .hero-nav.prev{ left:12px; }
   .hero-nav.next{ right:12px; }
+
+  .share-btn{
+    position:absolute;
+    z-index:6;
+    border-radius:50%;
+    background: rgba(255,255,255,0.92);
+    border:1px solid var(--line);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    cursor:pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .hero-slide .share-btn{
+    top:44px; right:16px;
+    width:34px; height:34px;
+    font-size:15px;
+  }
+  .g-card .share-btn{
+    top:8px; right:8px;
+    width:26px; height:26px;
+    font-size:12px;
+  }
 
   .hero-empty{
     height:62vh; min-height:380px;
@@ -280,6 +307,7 @@
   }
   .g-card{
     display:block;
+    position:relative;
     text-decoration:none;
     color:inherit;
     background:var(--surface);
@@ -332,6 +360,75 @@
     border-bottom:1px solid var(--line);
   }
 
+  .subscribe-bar{
+    padding: 4px 20px 16px;
+    border-bottom:1px solid var(--line);
+    background: var(--surface);
+  }
+  .subscribe-copy strong{
+    font-family:'Fraunces',serif;
+    font-weight:600;
+    font-size:16px;
+    display:block;
+    margin-bottom:2px;
+  }
+  .subscribe-copy span{
+    font-size:12px;
+    color: var(--muted);
+  }
+  .subscribe-form{
+    display:flex;
+    gap:8px;
+    margin-top:10px;
+  }
+  .subscribe-form input{
+    flex:1;
+    min-width:0;
+    background: #ffffff;
+    border:1px solid var(--line);
+    border-radius:22px;
+    padding: 11px 16px;
+    font-size:14px;
+    font-family:'Inter',sans-serif;
+    color: var(--text);
+  }
+  .subscribe-form input::placeholder,
+  .subscribe-form input::-webkit-input-placeholder,
+  .subscribe-form input:-ms-input-placeholder{
+    color: #b3a89a;
+    opacity: 1;
+    font-weight: 400;
+  }
+  .subscribe-form button{
+    flex-shrink:0;
+    background: var(--gold);
+    color:#fff;
+    border:none;
+    font-weight:700;
+    font-size:13px;
+    padding: 0 18px;
+    border-radius:22px;
+    cursor:pointer;
+  }
+  .subscribe-privacy{
+    font-size:11.5px;
+    font-weight:700;
+    color: var(--text);
+    background: #ffffff;
+    border:1px solid var(--line);
+    display:inline-block;
+    padding:6px 12px;
+    border-radius:14px;
+    margin-top:10px;
+  }
+  .subscribe-status{
+    font-size:12px;
+    margin-top:8px;
+    min-height:14px;
+  }
+  .subscribe-status.ok{ color: var(--gold); font-weight:600; }
+  .subscribe-status.err{ color: #b5352a; }
+
   footer{
     text-align:center;
     padding:20px;
@@ -377,6 +474,19 @@
 
 <div class="site-header">
   <div class="brand"><b>GetMeHelp</b> · offers</div>
+</div>
+
+<div class="subscribe-bar">
+  <div class="subscribe-copy">
+    <strong>Get notified about exclusive offers</strong>
+    <span>New deals dropped straight to your inbox.</span>
+  </div>
+  <form class="subscribe-form" id="subscribeForm">
+    <input type="email" id="subscribeEmail" placeholder="Email" required />
+    <button type="submit">Notify me</button>
+  </form>
+  <div class="subscribe-privacy">🔒 Your email is never shared or sold — used only for offers from GetMeHelp.</div>
+  <div class="subscribe-status" id="subscribeStatus"></div>
 </div>
 
 <div class="hero-wrap" id="heroWrap">
@@ -439,6 +549,7 @@ function getCategory(niche){
 }
 
 let campaigns = [];
+let heroCampaigns = [];
 let heroIndex = 0;
 let rotateTimer = null;
 let trendingIds = new Set();
@@ -506,25 +617,55 @@ function logClick(c){
 document.addEventListener('click', (e) => {
   const el = e.target.closest('[data-cid]');
   if(!el) return;
+  if(e.target.closest('[data-share-cid]')) return; // share tap, not an offer click
   const c = campaigns.find(x => x.id === el.dataset.cid);
   if(c) logClick(c);
+});
+
+document.addEventListener('click', (e) => {
+  const shareBtn = e.target.closest('[data-share-cid]');
+  if(!shareBtn) return;
+  e.preventDefault();
+
+  const cid = shareBtn.dataset.shareCid;
+  const c = campaigns.find(x => x.id === cid);
+  if(!c) return;
+
+  const shareUrl = `${window.location.origin}${window.location.pathname}?niche=${encodeURIComponent(c.niche)}&utm_source=share`;
+  const shareData = {
+    title: c.headline || c.niche,
+    text: `Check out this ${c.niche} offer on GetMeHelp`,
+    url: shareUrl
+  };
+
+  if(navigator.share){
+    navigator.share(shareData).catch(() => {});
+  }else{
+    navigator.clipboard.writeText(shareUrl).then(() => {
+      const original = shareBtn.textContent;
+      shareBtn.textContent = '✓';
+      setTimeout(() => { shareBtn.textContent = original; }, 1200);
+    });
+  }
 });
 
 /* ---------- HERO ---------- */
 function renderHero(){
   const track = document.getElementById('heroTrack');
   const segWrap = document.getElementById('segments');
+  heroCampaigns = campaigns.filter(c => (c.placement || 'both') !== 'grid');
 
-  if(campaigns.length === 0){
+  if(heroCampaigns.length === 0){
     track.innerHTML = `<div class="hero-empty">No live offers yet.</div>`;
     segWrap.innerHTML = '';
     return;
   }
 
-  track.innerHTML = campaigns.map(c => `
+  track.innerHTML = heroCampaigns.map(c => `
     <a class="hero-slide" data-cid="${c.id}" href="${buildAwinUrl(c)}" target="_blank" rel="noopener sponsored">
       <img src="${c.poster_url || ''}" alt="${c.headline || c.niche}" />
       <div class="hero-scrim"></div>
+      <button class="share-btn" data-share-cid="${c.id}" aria-label="Share this offer">📤</button>
       <div class="hero-copy">
         ${badgeRow(c)}
         <span class="hero-tag">${c.niche}</span>
@@ -534,7 +675,7 @@ function renderHero(){
     </a>
   `).join('');
 
-  segWrap.innerHTML = campaigns.map((_, i) => `
+  segWrap.innerHTML = heroCampaigns.map((_, i) => `
     <div class="segment" data-i="${i}"><div class="fill"></div></div>
   `).join('');
 
@@ -547,8 +688,8 @@ function renderHero(){
 }
 
 function goToHero(i){
-  if(campaigns.length === 0) return;
-  heroIndex = (i + campaigns.length) % campaigns.length;
+  if(heroCampaigns.length === 0) return;
+  heroIndex = (i + heroCampaigns.length) % heroCampaigns.length;
   document.getElementById('heroTrack').style.transform = `translateX(-${heroIndex * 100}%)`;
 
   const fills = document.querySelectorAll('.segment .fill');
@@ -559,7 +700,7 @@ function goToHero(i){
 
   clearTimeout(rotateTimer);
   const current = fills[heroIndex];
-  if(current && campaigns.length > 1){
+  if(current && heroCampaigns.length > 1){
     requestAnimationFrame(() => {
       current.style.transition = `width ${ROTATE_MS}ms linear`;
       current.style.width = '100%';
@@ -657,9 +798,10 @@ function renderOfferHighlights(){
 
 function renderGrid(){
   const grid = document.getElementById('grid');
+  const gridEligible = campaigns.filter(c => (c.placement || 'both') !== 'hero');
   let filtered = activeCategory === 'all'
-    ? campaigns
-    : campaigns.filter(c => getCategory(c.niche) === activeCategory);
+    ? gridEligible
+    : gridEligible.filter(c => getCategory(c.niche) === activeCategory);
 
   if(searchQuery){
     filtered = filtered.filter(c =>
@@ -677,6 +819,7 @@ function renderGrid(){
   grid.innerHTML = filtered.map(c => `
     <a class="g-card" data-cid="${c.id}" href="${buildAwinUrl(c)}" target="_blank" rel="noopener sponsored">
       <img src="${c.poster_url || ''}" alt="${c.headline || c.niche}" loading="lazy" onerror="this.style.opacity=0.2" />
+      <button class="share-btn" data-share-cid="${c.id}" aria-label="Share this offer">📤</button>
       <div class="g-body">
         ${badgeRow(c)}
         <span class="g-tag">${c.niche}</span>
@@ -726,11 +869,39 @@ function applyDeepLink(){
   searchQuery = query;
   renderGrid();
 
-  const idx = campaigns.findIndex(c => (c.niche || '').toLowerCase() === query);
+  const idx = heroCampaigns.findIndex(c => (c.niche || '').toLowerCase() === query);
   if(idx > -1) goToHero(idx);
 }
 
 loadCampaigns();
+
+/* ---------- SUBSCRIBE ---------- */
+document.getElementById('subscribeForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const emailInput = document.getElementById('subscribeEmail');
+  const statusEl = document.getElementById('subscribeStatus');
+  const email = emailInput.value.trim();
+
+  statusEl.textContent = 'Submitting…';
+  statusEl.className = 'subscribe-status';
+
+  const { error } = await sb.from('subscribers').insert({ email });
+
+  if(error){
+    if(error.code === '23505'){
+      statusEl.textContent = "You're already on the list!";
+      statusEl.className = 'subscribe-status ok';
+    }else{
+      statusEl.textContent = 'Something went wrong — try again.';
+      statusEl.className = 'subscribe-status err';
+    }
+    return;
+  }
+
+  statusEl.textContent = "You're in! We'll email you when new offers drop.";
+  statusEl.className = 'subscribe-status ok';
+  emailInput.value = '';
+});
 </script>
 </body>
 </html>
