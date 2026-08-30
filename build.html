@@ -54,7 +54,7 @@
     margin: 16px 0 6px;
   }
   label:first-of-type{ margin-top:0; }
-  input[type=text], input[type=url]{
+  input[type=text], input[type=url], select{
     width:100%;
     background:#ffffff;
     border:1px solid var(--line);
@@ -64,7 +64,7 @@
     font-size:15px;
     font-family:'Inter',sans-serif;
   }
-  input:focus{ outline:2px solid var(--teal); }
+  input:focus, select:focus{ outline:2px solid var(--teal); }
   .file-drop{
     border:1.5px dashed var(--line);
     border-radius:8px;
@@ -84,6 +84,31 @@
     border-radius:6px;
     display:none;
   }
+  .crop-preview-row{
+    display:flex;
+    gap:10px;
+    margin-top:12px;
+  }
+  .crop-box{ flex:1; text-align:center; }
+  .crop-box span{
+    display:block;
+    font-size:10px;
+    color:var(--muted);
+    margin-top:5px;
+    font-family:'JetBrains Mono',monospace;
+    text-transform:uppercase;
+    letter-spacing:.05em;
+  }
+  .crop-img{
+    width:100%;
+    border-radius:8px;
+    background-size:cover;
+    background-position:center;
+    border:1px solid var(--line);
+    background-color:#eee;
+  }
+  .hero-crop{ aspect-ratio: 4/5; }
+  .grid-crop{ aspect-ratio: 4/3; }
   button{
     width:100%;
     margin-top:22px;
@@ -139,6 +164,18 @@
   .row .reorder{ background:transparent; border:1px solid var(--line); color:var(--paper); padding:6px 9px; }
   .row .reorder:disabled{ opacity:0.25; }
   a.back{ color:var(--teal); font-size:13px; text-decoration:none; font-family:'JetBrains Mono',monospace; }
+  .sub-row{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:8px;
+    padding:10px 12px;
+    margin-bottom:8px;
+    font-size:13px;
+  }
+  .sub-row .sub-date{ color:var(--muted); font-size:11px; }
 </style>
 </head>
 <body>
@@ -157,7 +194,7 @@
 
   <div id="appArea" style="display:none;">
     <div class="card">
-      <label>Niche (e.g. roofing, solar, dazn-sports)</label>
+      <label>Niche (lowercase, dashes only — e.g. roofing, credit-cards, dazn-sports)</label>
       <input type="text" id="niche" placeholder="roofing" />
 
       <label>Headline (shown on poster)</label>
@@ -175,12 +212,30 @@
       <label>Expires on (optional — offer auto-hides after this date)</label>
       <input type="text" id="expiresAt" placeholder="YYYY-MM-DD" />
 
+      <label>Show as</label>
+      <select id="placement">
+        <option value="both">Big slide + small offer row (default)</option>
+        <option value="hero">Big slide only</option>
+        <option value="grid">Small offer row only</option>
+      </select>
+
       <label>Poster image</label>
+      <p style="font-size:12px;color:var(--muted);margin:-4px 0 10px;">Best results: a landscape photo, at least 1200×900px, with the main subject centered — it gets cropped differently for the big slide vs. the small card below.</p>
       <div class="file-drop" id="dropZone">
         Tap to upload poster image
         <input type="file" id="fileInput" accept="image/*" />
       </div>
       <img id="preview" />
+      <div class="crop-preview-row" id="cropPreviewRow" style="display:none;">
+        <div class="crop-box">
+          <div class="crop-img hero-crop" id="heroCropImg"></div>
+          <span>Big slide crop</span>
+        </div>
+        <div class="crop-box">
+          <div class="crop-img grid-crop" id="gridCropImg"></div>
+          <span>Small row crop</span>
+        </div>
+      </div>
 
       <button id="submitBtn">Save campaign</button>
       <div class="status" id="status"></div>
@@ -188,6 +243,12 @@
 
     <div class="list-title">Live campaigns</div>
     <div id="list"></div>
+
+    <div class="list-title" style="display:flex;align-items:center;justify-content:space-between;">
+      <span>Subscribers (<span id="subCount">0</span>)</span>
+      <button id="exportSubsBtn" style="width:auto;margin:0;padding:6px 14px;font-size:11px;border-radius:16px;">Export CSV</button>
+    </div>
+    <div id="subscriberList"></div>
 
     <p style="text-align:center;margin-top:8px;"><button id="signOutBtn" style="width:auto;background:transparent;border:1px solid var(--line);color:var(--muted);padding:8px 16px;font-size:12px;">Sign out</button></p>
   </div>
@@ -215,6 +276,7 @@ async function checkSession(){
     document.getElementById('loginCard').style.display = 'none';
     document.getElementById('appArea').style.display = 'block';
     loadList();
+    loadSubscribers();
   }else if(session){
     // signed in, but not the admin account — sign them out and don't expose the builder
     await sb.auth.signOut();
@@ -295,6 +357,9 @@ fileInput.addEventListener('change', async (e) => {
   reader.onload = (ev) => {
     preview.src = ev.target.result;
     preview.style.display = 'block';
+    document.getElementById('heroCropImg').style.backgroundImage = `url(${ev.target.result})`;
+    document.getElementById('gridCropImg').style.backgroundImage = `url(${ev.target.result})`;
+    document.getElementById('cropPreviewRow').style.display = 'flex';
   };
   reader.readAsDataURL(file);
 
@@ -315,12 +380,13 @@ function setStatus(msg, type){
 }
 
 document.getElementById('submitBtn').addEventListener('click', async () => {
-  const niche = document.getElementById('niche').value.trim();
+  const niche = document.getElementById('niche').value.trim().toLowerCase().replace(/\s+/g, '-');
   const headline = document.getElementById('headline').value.trim();
   const awinLink = document.getElementById('awinLink').value.trim();
   const clickref = document.getElementById('clickref').value.trim();
   const discountLabel = document.getElementById('discountLabel').value.trim();
   const expiresAtRaw = document.getElementById('expiresAt').value.trim();
+  const placement = document.getElementById('placement').value;
 
   if(!niche || !awinLink){
     setStatus('Niche and Awin link are required.', 'err');
@@ -350,6 +416,7 @@ document.getElementById('submitBtn').addEventListener('click', async () => {
       clickref_base: clickref || niche,
       discount_label: discountLabel || null,
       expires_at: expiresAtRaw || null,
+      placement: placement || 'both',
       poster_url: posterUrl,
       active: true
     });
@@ -362,7 +429,9 @@ document.getElementById('submitBtn').addEventListener('click', async () => {
     document.getElementById('clickref').value = '';
     document.getElementById('discountLabel').value = '';
     document.getElementById('expiresAt').value = '';
+    document.getElementById('placement').value = 'both';
     preview.style.display = 'none';
+    document.getElementById('cropPreviewRow').style.display = 'none';
     selectedFile = null;
     compressedBlob = null;
     fileInput.value = '';
@@ -396,11 +465,13 @@ async function loadList(){
     const row = document.createElement('div');
     row.className = 'row';
     const expiryTag = c.expires_at ? `<div class="headline">Expires ${new Date(c.expires_at).toLocaleDateString()}</div>` : '';
+    const placementLabel = { hero: 'Big slide only', grid: 'Small row only', both: 'Slide + row' }[c.placement || 'both'];
     row.innerHTML = `
       <img src="${c.poster_url || ''}" onerror="this.style.opacity=0" />
       <div class="info">
         <div class="niche">${c.niche}</div>
         <div class="headline">${c.headline || ''}</div>
+        <div class="headline">${placementLabel}</div>
         ${expiryTag}
       </div>
       <button class="reorder" data-id="${c.id}" data-dir="up" ${idx === 0 ? 'disabled' : ''}>↑</button>
@@ -456,6 +527,49 @@ async function loadList(){
     });
   });
 }
+
+async function loadSubscribers(){
+  const list = document.getElementById('subscriberList');
+  const countEl = document.getElementById('subCount');
+  const { data, error } = await sb
+    .from('subscribers')
+    .select('*')
+    .order('created_at', { ascending: false });
+
+  if(error){
+    list.innerHTML = `<div style="color:var(--muted);font-size:13px;">Couldn't load: ${error.message}</div>`;
+    return;
+  }
+
+  countEl.textContent = data.length;
+
+  if(data.length === 0){
+    list.innerHTML = `<div style="color:var(--muted);font-size:13px;">No subscribers yet.</div>`;
+    return;
+  }
+
+  list.innerHTML = data.map(s => `
+    <div class="sub-row">
+      <span>${s.email}</span>
+      <span class="sub-date">${new Date(s.created_at).toLocaleDateString()}</span>
+    </div>
+  `).join('');
+
+  window.__subscribersCache = data;
+}
+
+document.getElementById('exportSubsBtn').addEventListener('click', () => {
+  const data = window.__subscribersCache || [];
+  if(data.length === 0) return;
+  const csv = 'email,signed_up\n' + data.map(s => `${s.email},${s.created_at}`).join('\n');
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'getmehelp-subscribers.csv';
+  a.click();
+  URL.revokeObjectURL(url);
+});
 
 loadList();
 </script>
