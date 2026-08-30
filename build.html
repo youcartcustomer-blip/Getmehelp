@@ -443,6 +443,24 @@ document.getElementById('submitBtn').addEventListener('click', async () => {
   }
 });
 
+async function loadClickStats(){
+  const { data, error } = await sb
+    .from('campaign_clicks')
+    .select('campaign_id, created_at');
+
+  if(error || !data) return {};
+
+  const sevenDaysAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
+  const stats = {};
+  data.forEach(row => {
+    if(!row.campaign_id) return;
+    if(!stats[row.campaign_id]) stats[row.campaign_id] = { total: 0, last7d: 0 };
+    stats[row.campaign_id].total++;
+    if(new Date(row.created_at).getTime() > sevenDaysAgo) stats[row.campaign_id].last7d++;
+  });
+  return stats;
+}
+
 async function loadList(){
   const list = document.getElementById('list');
   const { data, error } = await sb
@@ -460,18 +478,22 @@ async function loadList(){
     return;
   }
 
+  const clickStats = await loadClickStats();
+
   list.innerHTML = '';
   data.forEach((c, idx) => {
     const row = document.createElement('div');
     row.className = 'row';
     const expiryTag = c.expires_at ? `<div class="headline">Expires ${new Date(c.expires_at).toLocaleDateString()}</div>` : '';
     const placementLabel = { hero: 'Big slide only', grid: 'Small row only', both: 'Slide + row' }[c.placement || 'both'];
+    const stats = clickStats[c.id] || { total: 0, last7d: 0 };
     row.innerHTML = `
       <img src="${c.poster_url || ''}" onerror="this.style.opacity=0" />
       <div class="info">
         <div class="niche">${c.niche}</div>
         <div class="headline">${c.headline || ''}</div>
         <div class="headline">${placementLabel}</div>
+        <div class="headline" style="color:var(--red);font-weight:600;">${stats.last7d} clicks (7d) · ${stats.total} total</div>
         ${expiryTag}
       </div>
       <button class="reorder" data-id="${c.id}" data-dir="up" ${idx === 0 ? 'disabled' : ''}>↑</button>
